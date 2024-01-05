@@ -13,6 +13,7 @@ const patternWidth = 400;
 const cxInit = 35;
 const xGap = 300;
 const yGap = 185;
+const radius = 20;
 
 const nodesArr = [
   {
@@ -127,38 +128,15 @@ function DynamicSVG() {
 
         let curve = '';
         if (idx > 0) {
-          const radius = 20;
+
           const p1x = nodesRef.current[idx - 1].cx;
           const p1y = nodesRef.current[idx - 1].cy;
-          const p2x = cx;
-          const p2y = cy;
 
-          // mid-point of line:
-          const mpx = (p2x + p1x + radius) * 0.6;
-          const mpy = (p2y + p1y + radius) * 0.5;
-
-          // angle of perpendicular to line:
-          const theta = Math.atan2(p2y - p1y, p2x - p1x) - Math.PI / 2;
-
-          // distance of control point from mid-point of line:
-          const offset = 60;
-
-          const pathOffset = radius * 1.45;
-
-          // construct the command to draw a quadratic curve
-          // curve = "M" + p1x + " " + p1y + " Q " + c1x + " " + c1y + " " + p2x + " " + p2y;
-          if(idx % 2 === 0){
-            // location of control point:
-            const c1x = mpx + offset * Math.sin(theta);
-            const c1y = mpy + offset * Math.cos(theta);
-
-            curve = `M${p1x},${p1y + pathOffset} Q${c1x},${c1y} ${p2x},${p2y - pathOffset}`;
-          }else{
-            // location of control point:
-            const c1x = mpx + offset * Math.cos(theta);
-            const c1y = mpy + offset * Math.sin(theta);
-
-            curve = `M${p1x + pathOffset},${p1y} Q${c1x},${c1y} ${p2x},${p2y - pathOffset}`;
+          // construct the command to draw a curve
+          if (idx % 2 === 0) {
+            curve = `M${p1x},${p1y + radius} c${-(xGap / 7.5) * 0.5},${(yGap / 4.5) * 2} ${-xGap * 0.5},${(yGap / 11)} ${-xGap-radius},${yGap-radius}`;
+          } else {
+            curve = `M${p1x},${p1y} c${(xGap / 7.5) * 0.5},${(yGap / 4.5) * 2} ${xGap * 0.5},${(yGap / 11)} ${xGap},${yGap}`;
           }
         }
 
@@ -166,15 +144,15 @@ function DynamicSVG() {
           stroke: "url(#remainingPathPattern)",
         }
 
-        if(node?.isComplete || nodesRef.current[idx-1]?.isComplete){
+        if (node?.isComplete || nodesRef.current[idx - 1]?.isComplete) {
           pathStyle.stroke = "url(#completePathPattern)";
         }
-        
-        if(nodesRef.current[idx-1]?.isCurrent){
+
+        if (nodesRef.current[idx - 1]?.isCurrent) {
           pathStyle.stroke = idx % 2 === 0 ? "url(#currentPathRTLPattern)" : "url(#currentPathLTRPattern)";
         }
 
-        nodesRef.current.push({...node, cx, cy });
+        nodesRef.current.push({ ...node, cx, cy });
 
         const pathProps = {
           id: `path-${node.id}`,

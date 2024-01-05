@@ -1,0 +1,28 @@
+Looking for a skilled Javascript Developer with a strong understanding of SVG to create a dynamic SVG pathway component. The component should be highly customizable through props and able to generate a visual pathway as described below.
+
+Project Goals & Requirements:
+
+- The SVG pathway should be dynamically drawn based on the number of nodes provided via props.
+- Nodes will be arranged from top to bottom, starting top left, then alternating between right & left
+- Each node on the pathway is represented as circle, lines that connect these circles (edges) should be drawn using dashed lines
+- Each node will represent an object containing flags indicating its state (e.g., isComplete, isCurrent, locked) and theme (e.g. hex color for complete/current nodes & gradient).
+- The pathway will visually update based on the node states:
+* isComplete: display a checkmark icon in the circle's center.
+* locked: gray out the node with lock icon inside
+* isCurrent: give the circle node pulse/highlight effect
+- A gradient color for the dashed lines connecting nodes that will dynamically fill as nodes are marked complete.
+- When all nodes are complete, the entire path should display the filled color.
+- Support for an additional SVG object to be rendered in the middle of the path between two nodes, creating the illusion of movement towards the next node. This SVG will be passed as a prop to the component
+
+Key Requirements:
+
+- Proficiency in React and JavaScript, with a portfolio demonstrating work with SVGs and dynamic rendering.
+- Experience with animations and gradient manipulations in SVG.
+
+Deliverables:
+
+- A React component or JavaScript function that meets the above specifications.
+- Source code with appropriate commenting.
+- Documentation on how to integrate and use the component within our project.
+
+Attached are rough mockups of what I'm looking for.

@@ -11,8 +11,8 @@ const patternHeight = 2;
 const patternWidth = 400;
 
 const cxInit = 35;
-const xGap = 300;
-const yGap = 185;
+const xGap = 350;
+const yGap = 150;
 const radius = 20;
 
 const nodesArr = [
@@ -20,14 +20,10 @@ const nodesArr = [
     id: '1',
     icon: null,
     isComplete: true,
+    iconAfterNode: true,
   },
   {
     id: '2',
-    icon: null,
-    isComplete: true,
-  },
-  {
-    id: '21',
     icon: null,
     isCurrent: true,
     isComplete: false,
@@ -57,7 +53,7 @@ function DynamicSVG() {
   let cy = 35;
 
   return (
-    <svg width="800" height="1000">
+    <svg width="800" height="800">
       <defs>
         <linearGradient id="completePathGradient">
           <stop offset="0%" stopColor={darkOrange} />
@@ -67,7 +63,7 @@ function DynamicSVG() {
           <stop offset="70%" stopColor={gray} />
         </linearGradient>
         <linearGradient id="currentPathRTLGradient">
-          <stop offset="35%" stopColor={gray} />
+          <stop offset="20%" stopColor={gray} />
           <stop offset="100%" stopColor={darkOrange} />
         </linearGradient>
         <linearGradient id="remainingPathGradient">
@@ -131,12 +127,15 @@ function DynamicSVG() {
 
           const p1x = nodesRef.current[idx - 1].cx;
           const p1y = nodesRef.current[idx - 1].cy;
-
           // construct the command to draw a curve
           if (idx % 2 === 0) {
-            curve = `M${p1x},${p1y + radius} c${-(xGap / 7.5) * 0.5},${(yGap / 4.5) * 2} ${-xGap * 0.5},${(yGap / 11)} ${-xGap-radius},${yGap-radius}`;
+            curve = `M${p1x},${p1y + radius} c${-(xGap / 7.5) * 0.5},${(yGap / 4.5) * 2} ${-xGap * 0.7},${(yGap / 11)} ${-xGap - radius},${yGap - radius}`;
           } else {
-            curve = `M${p1x},${p1y} c${(xGap / 7.5) * 0.5},${(yGap / 4.5) * 2} ${xGap * 0.5},${(yGap / 11)} ${xGap},${yGap}`;
+            if (idx > 1) {
+              curve = `M${p1x},${p1y + radius}, c${(xGap / 20)},${(yGap / 1.8)} ${xGap},${(yGap / 8.5)} ${xGap},${yGap}`;
+            } else {
+              curve = `M${p1x + radius},${p1y}, c${(xGap / 8.5)},${-(yGap / 20)} ${xGap},${(yGap / 1.5)} ${xGap - radius},${yGap}`;
+            }
           }
         }
 
@@ -163,7 +162,35 @@ function DynamicSVG() {
           d: curve,
         }
 
-        return (<>
+        let iconAfterNodeProps = null;
+
+        if (idx > 0) {
+          const p1x = nodesRef.current[idx - 1].cx;
+          const p1y = nodesRef.current[idx - 1].cy;
+          // mid-point of line:
+          const mpx = (cx + p1x + radius) * 0.53;
+          const mpy = (cy + p1y + radius) * 0.39;
+
+          // angle of perpendicular to line:
+          const theta = Math.atan2(cy - p1y, cx - p1x) - Math.PI / 2;
+
+          // distance of control point from mid-point of line:
+          const offset = 50;
+
+          // location of control point:
+          const c1x = mpx + offset * Math.cos(theta);
+          const c1y = mpy + offset * Math.sin(theta);
+          iconAfterNodeProps = {
+            id: `node-${node.id}`,
+            cx: c1x,
+            cy: c1y,
+            r: 22,
+            fill: "url(#settingImage)"
+          }
+        }
+
+        return (<g key={node.id}>
+          <path {...pathProps} />
           <circle {...nodeObjProps} />
           {node?.isCurrent && <circle {...nodeObjProps} r="22" fill={darkOrange} />}
           {node?.isComplete && <circle {...nodeObjProps} r="18" fill="url(#okImage)" />}
@@ -172,8 +199,10 @@ function DynamicSVG() {
             <circle {...nodeObjProps} r="18" fill="url(#lockImage)" />
           }
 
-          <path {...pathProps} />
-        </>);
+          {idx > 0 && nodesRef.current[idx - 1]?.iconAfterNode &&
+            <circle {...iconAfterNodeProps} r="18" fill="url(#settingImage)" />
+          }
+        </g>);
       })}
     </svg>
   )

@@ -23,6 +23,11 @@ const nodesArr = [
   {
     id: '2',
     icon: null,
+    isComplete: true,
+  },
+  {
+    id: '21',
+    icon: null,
     isCurrent: true,
     isComplete: false,
   },
@@ -56,9 +61,13 @@ function DynamicSVG() {
         <linearGradient id="completePathGradient">
           <stop offset="0%" stopColor={darkOrange} />
         </linearGradient>
-        <linearGradient id="currentPathGradient">
+        <linearGradient id="currentPathLTRGradient">
           <stop offset="0%" stopColor={darkOrange} />
-          <stop offset="100%" stopColor={gray} />
+          <stop offset="70%" stopColor={gray} />
+        </linearGradient>
+        <linearGradient id="currentPathRTLGradient">
+          <stop offset="35%" stopColor={gray} />
+          <stop offset="100%" stopColor={darkOrange} />
         </linearGradient>
         <linearGradient id="remainingPathGradient">
           <stop offset="0%" stopColor={gray} />
@@ -69,9 +78,14 @@ function DynamicSVG() {
             <rect x="0" y="0" width={patternWidth} height={patternHeight} fill="url(#completePathGradient)" />
           </g>
         </pattern>
-        <pattern id="currentPathPattern" x="0" y="0" width={patternWidth} height={patternHeight} patternUnits="userSpaceOnUse">
+        <pattern id="currentPathLTRPattern" x="0" y="0" width={patternWidth} height={patternHeight} patternUnits="userSpaceOnUse">
           <g>
-            <rect x="0" y="0" width={patternWidth} height={patternHeight} fill="url(#currentPathGradient)" />
+            <rect x="0" y="0" width={patternWidth} height={patternHeight} fill="url(#currentPathLTRGradient)" />
+          </g>
+        </pattern>
+        <pattern id="currentPathRTLPattern" x="0" y="0" width={patternWidth} height={patternHeight} patternUnits="userSpaceOnUse">
+          <g>
+            <rect x="0" y="0" width={patternWidth} height={patternHeight} fill="url(#currentPathRTLGradient)" />
           </g>
         </pattern>
         <pattern id="remainingPathPattern" x="0" y="0" width={patternWidth} height={patternHeight} patternUnits="userSpaceOnUse">
@@ -79,6 +93,7 @@ function DynamicSVG() {
             <rect x="0" y="0" width={patternWidth} height={patternHeight} fill="url(#remainingPathGradient)" />
           </g>
         </pattern>
+
         <pattern id="lockImage" x="0%" y="0%" height="100%" width="100%" viewBox="0 0 512 512">
           <image x="5%" y="5%" width="430" height="430" xlinkHref={LockIcon} />
         </pattern>
@@ -110,7 +125,6 @@ function DynamicSVG() {
           ...(node.isComplete && { fill: darkOrange, }),
         }
 
-
         let curve = '';
         if (idx > 0) {
           const radius = 20;
@@ -129,25 +143,42 @@ function DynamicSVG() {
           // distance of control point from mid-point of line:
           const offset = 60;
 
-          // location of control point:
-          const c1x = mpx + offset * Math.cos(theta);
-          const c1y = mpy + offset * Math.sin(theta);
-          // const dotElement = document.getElementById("dot");
-          // dotElement.setAttribute("cx", c1x);
-          // dotElement.setAttribute("cy", c1y);
-
           const pathOffset = radius * 1.45;
 
           // construct the command to draw a quadratic curve
           // curve = "M" + p1x + " " + p1y + " Q " + c1x + " " + c1y + " " + p2x + " " + p2y;
-          curve = "M" + (p1x + pathOffset) + " " + p1y + " Q " + c1x + " " + c1y + " " + p2x + " " + (p2y - pathOffset);
+          if(idx % 2 === 0){
+            // location of control point:
+            const c1x = mpx + offset * Math.sin(theta);
+            const c1y = mpy + offset * Math.cos(theta);
+
+            curve = `M${p1x},${p1y + pathOffset} Q${c1x},${c1y} ${p2x},${p2y - pathOffset}`;
+          }else{
+            // location of control point:
+            const c1x = mpx + offset * Math.cos(theta);
+            const c1y = mpy + offset * Math.sin(theta);
+
+            curve = `M${p1x + pathOffset},${p1y} Q${c1x},${c1y} ${p2x},${p2y - pathOffset}`;
+          }
         }
 
-        nodesRef.current.push({ cx, cy });
+        const pathStyle = {
+          stroke: "url(#remainingPathPattern)",
+        }
+
+        if(node?.isComplete || nodesRef.current[idx-1]?.isComplete){
+          pathStyle.stroke = "url(#completePathPattern)";
+        }
+        
+        if(nodesRef.current[idx-1]?.isCurrent){
+          pathStyle.stroke = idx % 2 === 0 ? "url(#currentPathRTLPattern)" : "url(#currentPathLTRPattern)";
+        }
+
+        nodesRef.current.push({...node, cx, cy });
 
         const pathProps = {
           id: `path-${node.id}`,
-          style: { stroke: "url(#currentPathPattern)" },
+          style: pathStyle,
           fill: "transparent",
           strokeWidth: "4",
           strokeDasharray: "13,10",
@@ -156,8 +187,8 @@ function DynamicSVG() {
 
         return (<>
           <circle {...nodeObjProps} />
-          {node.isCurrent && <circle {...nodeObjProps} r="22" fill={darkOrange} />}
-          {node.isComplete && <circle {...nodeObjProps} r="18" fill="url(#okImage)" />}
+          {node?.isCurrent && <circle {...nodeObjProps} r="22" fill={darkOrange} />}
+          {node?.isComplete && <circle {...nodeObjProps} r="18" fill="url(#okImage)" />}
 
           {!node?.isComplete && !node?.isCurrent &&
             <circle {...nodeObjProps} r="18" fill="url(#lockImage)" />

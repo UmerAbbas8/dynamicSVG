@@ -1,7 +1,4 @@
 import { useRef } from 'react';
-import LockIcon from './assets/icons8-lock.svg';
-import OkIcon from './assets/icons8-ok.svg';
-import SettingIcon from './assets/icons8-setting.svg';
 
 const lightOrange = '#fbd5b9';
 const darkOrange = '#f16020';
@@ -15,33 +12,10 @@ const xGap = 350;
 const yGap = 150;
 const radius = 20;
 
-const nodesArr = [
-  {
-    id: '1',
-    icon: null,
-    isComplete: true,
-    iconAfterNode: true,
-  },
-  {
-    id: '2',
-    icon: null,
-    isCurrent: true,
-    isComplete: false,
-  },
-  {
-    id: '3',
-    icon: LockIcon,
-    isComplete: false,
-  },
-  {
-    id: '4',
-    icon: LockIcon,
-    isComplete: false,
-  },
-];
+function DynamicSVG(props) {
 
-function DynamicSVG() {
-
+  // eslint-disable-next-line react/prop-types
+  const { nodesArr = [], iconsArr = [] } = props;
   const nodesRef = useRef([]);
 
   let cx = cxInit;
@@ -86,15 +60,13 @@ function DynamicSVG() {
           </g>
         </pattern>
 
-        <pattern id="lockImage" x="0%" y="0%" height="100%" width="100%" viewBox="0 0 512 512">
-          <image x="5%" y="5%" width="430" height="430" xlinkHref={LockIcon} />
-        </pattern>
-        <pattern id="okImage" x="0%" y="0%" height="100%" width="100%" viewBox="0 0 512 512">
-          <image x="5%" y="5%" width="430" height="430" xlinkHref={OkIcon} />
-        </pattern>
-        <pattern id="settingImage" x="0%" y="0%" height="100%" width="100%" viewBox="0 0 512 512">
-          <image x="5%" y="5%" width="430" height="430" xlinkHref={SettingIcon} />
-        </pattern>
+        {iconsArr.map(icon => (
+          <g key={`icon-${icon.name}`}>
+            <pattern id={icon.name} x="0%" y="0%" height="100%" width="100%" viewBox="0 0 512 512">
+              <image x="5%" y="5%" width="430" height="430" xlinkHref={icon.icon} />
+            </pattern>
+          </g>
+        ))}
       </defs>
 
       {nodesArr.map((node, idx) => {
@@ -164,7 +136,7 @@ function DynamicSVG() {
           const p1y = nodesRef.current[idx - 1].cy;
 
           // mid-point of line:
-          const mpx = (cx + p1x + (radius/2)) * 0.5;
+          const mpx = (cx + p1x + (radius / 2)) * 0.5;
 
           // angle of perpendicular to line:
           const theta = Math.atan2(cy - p1y, cx - p1x) - Math.PI / 2;
@@ -174,29 +146,30 @@ function DynamicSVG() {
 
           // location of control point:
           const c1x = mpx + offset * Math.cos(theta);
-          const c1y = (yGap * 2 * idx) / 2 - (cxInit * 2 + (idx === 1 ? cxInit/1.2 : 0));
+          const c1y = (yGap * 2 * idx) / 2 - (cxInit * 2 + (idx === 1 ? cxInit / 1.2 : 0));
 
           iconAfterNodeProps = {
             id: `iconAfterNode-${node.id}`,
             cx: c1x,
             cy: c1y,
             r: 22,
-            fill: "url(#settingImage)"
           }
         }
 
         return (<g key={node.id}>
           <path {...pathProps} />
           <circle {...nodeObjProps} />
-          {node?.isCurrent && <circle {...nodeObjProps} r="22" fill={darkOrange} />}
-          {node?.isComplete && <circle {...nodeObjProps} r="18" fill="url(#okImage)" />}
+          
+          {node?.isCurrent && 
+            <circle {...nodeObjProps} r="22" fill={darkOrange} />
+          }
 
-          {!node?.isComplete && !node?.isCurrent &&
-            <circle {...nodeObjProps} r="18" fill="url(#lockImage)" />
+          {!node?.isCurrent &&
+            <circle {...nodeObjProps} r="18" fill={`url(#${node.icon})`} />
           }
 
           {idx > 0 && nodesRef.current[idx - 1]?.iconAfterNode &&
-            <circle {...iconAfterNodeProps} r="18" fill="url(#settingImage)" />
+            <circle {...iconAfterNodeProps} r="18" fill={`url(#${nodesRef.current[idx - 1]?.iconAfterNode})`} />
           }
         </g>);
       })}

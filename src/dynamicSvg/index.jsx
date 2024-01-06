@@ -38,22 +38,17 @@ const nodesArr = [
     icon: LockIcon,
     isComplete: false,
   },
-  {
-    id: '5',
-    icon: LockIcon,
-    isComplete: false,
-  }
 ];
 
 function DynamicSVG() {
 
   const nodesRef = useRef([]);
 
-  let cx = 35;
-  let cy = 35;
+  let cx = cxInit;
+  let cy = cxInit;
 
   return (
-    <svg width="800" height="800">
+    <svg width="800" height="1000">
       <defs>
         <linearGradient id="completePathGradient">
           <stop offset="0%" stopColor={darkOrange} />
@@ -167,21 +162,22 @@ function DynamicSVG() {
         if (idx > 0) {
           const p1x = nodesRef.current[idx - 1].cx;
           const p1y = nodesRef.current[idx - 1].cy;
+
           // mid-point of line:
-          const mpx = (cx + p1x + radius) * 0.53;
-          const mpy = (cy + p1y + radius) * 0.39;
+          const mpx = (cx + p1x + (radius/2)) * 0.5;
 
           // angle of perpendicular to line:
           const theta = Math.atan2(cy - p1y, cx - p1x) - Math.PI / 2;
 
           // distance of control point from mid-point of line:
-          const offset = 50;
+          const offset = 25;
 
           // location of control point:
           const c1x = mpx + offset * Math.cos(theta);
-          const c1y = mpy + offset * Math.sin(theta);
+          const c1y = (yGap * 2 * idx) / 2 - (cxInit * 2 + (idx === 1 ? cxInit/1.2 : 0));
+
           iconAfterNodeProps = {
-            id: `node-${node.id}`,
+            id: `iconAfterNode-${node.id}`,
             cx: c1x,
             cy: c1y,
             r: 22,

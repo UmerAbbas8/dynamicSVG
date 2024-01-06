@@ -37,11 +37,13 @@ function App() {
       id: '3',
       icon: 'LockIcon',
       isComplete: false,
+      isLocked: true,
     },
     {
       id: '4',
       icon: 'LockIcon',
       isComplete: false,
+      isLocked: true,
     },
   ];
 
